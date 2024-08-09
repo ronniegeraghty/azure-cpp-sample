@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.30.0)
+
+project(azure_sample VERSION 0.1.0 LANGUAGES C CXX)
+
+
+find_package(azure-identity-cpp CONFIG REQUIRED)
+find_package(azure-security-keyvault-secrets-cpp CONFIG REQUIRED)
+
+add_executable(azure_sample main.cpp)
+
+target_link_libraries(azure_sample PRIVATE 
+    Azure::azure-identity 
+    Azure::azure-security-keyvault-secrets
+)

@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "configurePresets": [
+      {
+        "name": "default",
+        "generator": "MinGW Makefiles",
+        "binaryDir": "${sourceDir}/build",
+        "cacheVariables": {
+          "CMAKE_TOOLCHAIN_FILE": "path/to/vcpkg/cmake/script",
+          "CMAKE_CXX_COMPILER":"path/to/cpp/compiler",
+          "CMAKE_C_COMPILER":"path/to/c/compiler",
+          "CMAKE_MAKE_PROGRAM": "path/to/make/generator"
+        }
+      }
+    ]
+  }
