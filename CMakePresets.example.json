@@ -3,7 +3,7 @@
     "configurePresets": [
       {
         "name": "default",
-        "generator": "MinGW Makefiles",
+        "generator": "your generator",
         "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
           "CMAKE_TOOLCHAIN_FILE": "path/to/vcpkg/cmake/script",

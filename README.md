@@ -17,12 +17,13 @@ cmake --version
 ```bash
 cmake version 3.30.2
 ```
+- If you don't see the expected output you may need to restart your computer. 
 
 ### Install vcpkg
 - To install vcpkg you'll first need to clone the vcpkg repo. I recommend cloning vcpkg to a central location on your development environment and not in your C++ Project directory. In this example I'll clone vcpkg to my home dir. 
 ```bash
 cd ~
-git clone https://github.com/microsoft/vcpkg.git ~
+git clone https://github.com/microsoft/vcpkg.git
 ```
 - Once the vcpkg repo is cloned traverse into the new directory and run the bootstrap-vcpkg script. 
   - If you're on Windows run: 
@@ -38,7 +39,7 @@ git clone https://github.com/microsoft/vcpkg.git ~
 - After bootstrapping vcpkg, add it to your path so you can access the vcpkg executable from your project directory. 
   - On Windows Powershell, enter: 
   ```bash
-  $env:Path += 'C:\path\to\vcpkg'
+  $env:Path = "$env:Path;C:\path\to\vcpkg"
   ```
   - On MacOS or Linux systems, enter: 
   ```bash
