@@ -4,7 +4,8 @@
 1. Any Text Editor 
 2. A terminal
 3. A C++ compiler
-4. git
+    - Windows: [MSVC](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170)
+4. [git](https://git-scm.com/downloads)
 
 ## Steps 
 ### Install CMake
@@ -36,7 +37,7 @@ git clone https://github.com/microsoft/vcpkg.git
   cd vcpkg
   ./bootstrap-vcpkg.sh
   ```
-- After bootstrapping vcpkg, add it to your path so you can access the vcpkg executable from your project directory. 
+- After bootstrapping vcpkg, add it to your path so you can access the vcpkg executable from your project directory. Remember to replace the path in the command example with the path to the vcpkg directory you cloned earlier.
   - On Windows Powershell, enter: 
   ```bash
   $env:Path = "$env:Path;C:\path\to\vcpkg"
@@ -55,6 +56,7 @@ vcpkg package management program version 2024-08-01-fd884a0d390d12783076341bd43d
 ```
 
 ### Project Setup
+- In your terminal, travers back to the root of your project. 
 - Let's start by creating our main C++ file. 
   - On Windows Powershell, enter: 
   ```bash
@@ -80,14 +82,14 @@ vcpkg package management program version 2024-08-01-fd884a0d390d12783076341bd43d
   ```
 ### Setup CMakeLists.txt file
 - Now open the `CMakeLists.txt` file in your text editor and delete any contents inside it.
-- To set up a extremely basic CMake project add the following to your `CMakeLists.txt` file: 
+- To set up a extremely basic CMake project, replace the contents of your `CMakeLists.txt` file with the following:
 ```cmake
 cmake_minimum_required(VERSION 3.30.0)
 project(azure_sample VERSION 0.1.0 LANGUAGES C CXX)
 
 add_executable(azure_sample main.cpp)
 ```
-- To test our project setup so far lets also open our `main.cpp` file and add the following hello world code: 
+- To test our project setup so far lets also open our `main.cpp` file and replace it's contents with the following hello world code: 
 ```cpp
 #include <iostream>
 
@@ -96,25 +98,24 @@ int main() {
     return 0;
 }
 ```
-- Now, in the terminal lets move inside our build directory and run the command to configure our CMake build. 
+- Now, in the terminal lets run the command to configure our CMake build. 
 ```bash
-cd build
-cmake ..
+cmake -B build
 ```
 - You should see the build directory populate with some directories and files. 
 - Now lets try building the project with: 
 ```bash
-cmake --build .
+cmake --build ./build
 ```
 - The output of the build should contain a line stating where the executable that was built was placed. By default it should be in your `build` directory under a new `Debug` directory with the name `azure_sample.exe` if your on Windows or `azure_sample` if your on MacOS or Linux.
 - Lets try running our new executable. 
   - If your on Windows Powershell, enter: 
   ```bash
-  .\Debug\azure_sample.exe
+  .\build\Debug\azure_sample.exe
   ```
   - If your on MacOS or Linux, enter: 
   ```bash
-  ./Debug/azure_sample
+  ./build/Debug/azure_sample
   ```
 - You should get the following out put: 
 ```bash
@@ -125,7 +126,6 @@ Hello World!
 - In this example we'll be using vcpkg in what's known as manifest mode.
 - First we'll start by moving back to the root directory of our project, and creating a new vcpkg application with the following command: 
 ```bash
-cd ../
 vcpkg new --application
 ```
 - You should now have a `vcpkg.json` and `vcpkg-configuration.json` file in your project directory with the following contents: 
@@ -163,4 +163,92 @@ vcpkg add port azure-identity-cpp azure-security-keyvault-secrets-cpp
   ]
 }
 ```
-# azure-cpp-sample
+
+### Integrate CMake with vcpkg
+
+- To integrate CMake with vcpkg we need to add the `vcpkg.cmake` module to our CMake toolchain. You can do this either by setting `CMAKE_TOOLCHAIN_FILE` in your `CMakeLists.txt` file like this: 
+```cmake
+cmake_minimum_required(VERSION 3.30.0)
+
+# Remember to replace the path below with the path where you cloned vcpkg
+set(CMAKE_TOOLCHAIN_FILE "/path/to/vcpkg-root/scripts/buildsystems/vcpkg.cmake")
+
+project(azure_sample VERSION 0.1.0 LANGUAGES C CXX)
+
+add_executable(azure_sample main.cpp)
+```
+- Or by specifying the toolchain file in the CMake configuration command like this: 
+```bash
+cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg-root/scripts/buildsystems/vcpkg.cmake -B build
+```
+- I'd recommend specifying the toolchain file in the `CMakeLists.txt` for now as it will shorten the commands you have to enter.
+
+- We'll also need to tell CMake to find and link our two Azure packages. We can do that by updating our `CMakeLists.txt` to the following: 
+```cmake
+cmake_minimum_required(VERSION 3.30.0)
+
+# Remember to replace the path below with the path where you cloned vcpkg
+set(CMAKE_TOOLCHAIN_FILE "/path/to/vcpkg-root/scripts/buildsystems/vcpkg.cmake")
+
+project(azure_sample VERSION 0.1.0 LANGUAGES C CXX)
+
+find_package(azure-identity-cpp CONFIG REQUIRED)
+find_package(azure-security-keyvault-secrets-cpp CONFIG REQUIRED)
+
+add_executable(azure_sample main.cpp)
+
+target_link_libraries(azure_sample PRIVATE
+    Azure::azure-identity
+    Azure::azure-security-keyvault-secrets
+)
+```
+
+### Create an Azure Key Vault resource
+
+- To create an Azure Key Vault resouce you'll need an [Azure subscription][azure_sub].
+- We'll use the Azure CLI to create our Key Vault resource and authenticate to Azure.
+- Go to the [Azure CLI Install page](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) for instructions on how to install the Azure CLI on your dev environment.
+- Use the following command to authenticate with the Azure CLI
+```bash
+az login
+```
+- Use the pop up windows to login to Azure.
+- Then use the following command to create your Key Vault resource, and remember to replace `<your-resource-group-name>` and `<your-key-vault-name>` with your own, unique names: 
+
+  ```PowerShell
+  az keyvault create --resource-group <your-resource-group-name> --name <your-key-vault-name>
+  ```
+- In the output you should see a list of properties with a `vaultUri` property. We'll set that to an environment variable to be used in our program with the following command: 
+  - In a Windows Powershell terminal, enter: 
+  ```pwsh
+  $env:AZURE_KEYVAULT_URL = "https://<your-key-vault-name>.vault.azure.net/"
+  ```
+  - In a MacOS or Linux terminal, enter: 
+  ```bash
+  export AZURE_KEYVAULT_URL="https://<your-key-vault-name>.vault.azure.net/"
+  ```
+
+### Add our Azure C++ Code
+- Now we'll update our `main.cpp` file with the following code to use Azure Key Vault:
+```cpp
+#include <azure/identity.hpp> 
+#include <azure/keyvault/secrets.hpp> 
+#include <iostream>
+
+using namespace Azure::Security::KeyVault::Secrets;
+
+int main(){
+    std::cout<<"Starting Program!"<<std::endl;
+
+    auto const keyVaultUrl = std::getenv("AZURE_KEYVAULT_URL");
+
+    std::cout<<"AZURE_KEYVAULT_URL: "<<keyVaultUrl<<std::endl;
+
+    //auto credential = std::make_shared<Azure::Identity::DefaultAzureCredential>();
+
+    //SecretClient secretClient(keyVaultUrl, credential);
+}
+``` 
+
+[azure_cli]: https://docs.microsoft.com/cli/azure
+[azure_sub]: https://azure.microsoft.com/free/
