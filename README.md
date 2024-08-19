@@ -310,6 +310,108 @@ End of Program!
 ```
 
 ### Getting the project ready for git
+- To begin collabortaing with others on our Azure C++ project we'll need to change a few things about the way the project has been configured. We need to make sure any file paths we've used are not contained in build files we want to share. 
+- Currently our `CMakeLists.txt` file has a path to the `vcpkg.cmake` toolchain file on our local machine.
+- Lets remove the `set(CMAKE_TOOLCHAIN_FILE "C:/Users/rgeraghty/vcpkg/scripts/buildsystems/vcpkg.cmake")` line from the `CMakeLists.txt` file so it now looks like this: 
+```cmake
+cmake_minimum_required(VERSION 3.30.0)
+
+project(azure_sample VERSION 0.1.0 LANGUAGES C CXX)
+
+find_package(azure-identity-cpp CONFIG REQUIRED)
+find_package(azure-security-keyvault-secrets-cpp CONFIG REQUIRED)
+
+add_executable(azure_sample main.cpp)
+
+target_link_libraries(azure_sample PRIVATE
+    Azure::azure-identity
+    Azure::azure-security-keyvault-secrets
+)
+```
+- Now use the following command to create a `CMakeUserPresets.json` file. We'll use this file to store our environment specific configurations.
+  - In a Windows Powershell terminal, enter:
+  ```pswh
+  echo {} > CMakeUserPresets.json
+  ```
+  - In a MacOS or Linux terminal, enter:
+  ```bash
+  touch CMakeUserPresets.json
+  ```
+- Now open the newly created `CMakeUserPresets.json` file and replace its contents with the following:
+```json
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 30,
+      "patch": 0
+    },
+    "configurePresets": [
+      {
+        "name": "default",
+        "displayName": "Default Config",
+        "description": "Default build using Ninja generator",
+        "binaryDir": "${sourceDir}/build/",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_TOOLCHAIN_FILE": "path/to/vcpkg/root/scripts/buildsystems/vcpkg.cmake"
+        }
+      }
+    ],
+    "buildPresets": [
+      {
+        "name": "default",
+        "configurePreset": "default"
+      }
+    ]
+  }
+```
+- Replace the value of the `CMAKE_TOOLCHAIN_FILE` property with the path to the vcpkg cmake toolchain file. *Note: this will be the same path we used for this property in our `CMakeLists.txt` file earlier.*
+- Now that we're using presets with CMake, our CMake project will configure differently. Lets clean our build directory so the CMake Cache doesn't conflict with our new configureation. 
+  - In a Windows Powershell terminal, enter: 
+  ```pwsh
+  Remove-Item -Path .\build\ -Recurse -Force
+  ```
+  - In a MacOS or Linux terminal, enter: 
+  ```bash
+  rm -rf ./build
+  ```
+- Now we'll re-add our `./buid` direcotry by entering the following command: 
+```bash
+mkdir build
+```
+- Now to configure our CMake project will run the following command: 
+```bash
+cmake --preset default
+```
+- Then we can build the project with this next command: 
+```bash
+cmake --build --preset default
+```
+- Finally we can run our program again with these commands: 
+  - If your on Windows Powershell, enter: 
+  ```pwsh
+  .\build\Debug\azure_sample.exe
+  ```
+  - If your on MacOS or Linux, enter: 
+  ```bash
+  ./build/Debug/azure_sample
+  ```
+- The last thing we need to do to get our project ready for collaboration with git is add a `.gitignore` file that specifies that the `CMakeUserPresets.json` file should not be included in source control. 
+- To creat the `.gitignore` file use the following commands: 
+  - - If your on Windows Powershell, enter: 
+  ```pwsh
+  echo ignore > .gitignore
+  ```
+  - If your on MacOS or Linux, enter: 
+  ```bash
+  touch .gitignore
+  ```
+- Then open the `.gitignore` file in your editor and replace its contents with the following 
+```
+build 
+CMakeUserPresets.json
+```
 
 
 [azure_cli]: https://docs.microsoft.com/cli/azure
