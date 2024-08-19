@@ -100,7 +100,7 @@ int main() {
 ```
 - Now, in the terminal lets run the command to configure our CMake build. 
 ```bash
-cmake -B build
+cmake -B ./build
 ```
 - You should see the build directory populate with some directories and files. 
 - Now lets try building the project with: 
@@ -110,7 +110,7 @@ cmake --build ./build
 - The output of the build should contain a line stating where the executable that was built was placed. By default it should be in your `build` directory under a new `Debug` directory with the name `azure_sample.exe` if your on Windows or `azure_sample` if your on MacOS or Linux.
 - Lets try running our new executable. 
   - If your on Windows Powershell, enter: 
-  ```bash
+  ```pwsh
   .\build\Debug\azure_sample.exe
   ```
   - If your on MacOS or Linux, enter: 
@@ -240,15 +240,76 @@ using namespace Azure::Security::KeyVault::Secrets;
 int main(){
     std::cout<<"Starting Program!"<<std::endl;
 
-    auto const keyVaultUrl = std::getenv("AZURE_KEYVAULT_URL");
+    try{
+        // Set Key Vault URL string
+        auto const keyVaultUrl = std::getenv("AZURE_KEYVAULT_URL");
 
-    std::cout<<"AZURE_KEYVAULT_URL: "<<keyVaultUrl<<std::endl;
+        // Create Defautl Azure Credential to Authenticate. 
+        // It will pick up on our AzureCLI login
+         auto credential = std::make_shared<Azure::Identity::DefaultAzureCredential>();
 
-    //auto credential = std::make_shared<Azure::Identity::DefaultAzureCredential>();
+        // Create Key Vault Secret Client
+        SecretClient secretClient(keyVaultUrl, credential);
 
-    //SecretClient secretClient(keyVaultUrl, credential);
+        // Create a Secret
+        std::string secretName("MySampleSecret");
+        std::string secretValue("My super secret value");
+        secretClient.SetSecret(secretName, secretValue);
+
+        // Get the Secret
+        KeyVaultSecret secret = secretClient.GetSecret(secretName).Value;
+        std::string valueString = secret.Value.HasValue()? secret.Value.Value() : "NONE RETURNED";
+        std::cout<<"Secret is returned with name "<<secret.Name<<" and value "<<valueString<<std::endl;
+
+    }catch (const Azure::Core::RequestFailedException& ex){
+        std::cout << std::underlying_type<Azure::Core::Http::HttpStatusCode>::type(ex.StatusCode)<<std::endl;
+    }
+
+    std::cout<<"End of Program!"<<std::endl;
 }
 ``` 
+
+### Rebuild and Run
+
+- After updating our `CMakeLists.txt` file we'll want to delete the CMake cache. Lets just delete and recreate the `./build` directory. 
+  - In a Windows Powershell terminal, enter: 
+  ```pwsh
+  Remove-Item -Path .\build\ -Recurse -Force
+  ```
+  - In a MacOS or Linux terminal, enter: 
+  ```bash
+  rm -rf ./build
+  ```
+- Now we'll re-add our `./buid` direcotry by entering the following command: 
+```bash
+mkdir build
+```
+- Reconfigure CMake with the following command: 
+```bash
+cmake -B ./build
+```
+- Then we'll build our project with the following command: 
+```bash
+cmake --build ./build
+```
+- Next we'll run our program: 
+  - If your on Windows Powershell, enter: 
+  ```pwsh
+  .\build\Debug\azure_sample.exe
+  ```
+  - If your on MacOS or Linux, enter: 
+  ```bash
+  ./build/Debug/azure_sample
+  ```
+- The program should output the following: 
+```bash
+Starting Program!
+Secret is returned with name MySampleSecret and value My super secret value
+End of Program!
+```
+
+### Getting the project ready for git
+
 
 [azure_cli]: https://docs.microsoft.com/cli/azure
 [azure_sub]: https://azure.microsoft.com/free/
