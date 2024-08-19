@@ -227,6 +227,7 @@ az login
   ```bash
   export AZURE_KEYVAULT_URL="https://<your-key-vault-name>.vault.azure.net/"
   ```
+- Finally, you'll need to make sure your Azure account has the proper permissions to work with Key Vault Secrets. You can do this by assigning yourself the "Key Vault Secrets Officer" role on the Access Control (IAM) page of your Key Vault resouce in the Azure portal.
 
 ### Add our Azure C++ Code
 - Now we'll update our `main.cpp` file with the following code to use Azure Key Vault:
