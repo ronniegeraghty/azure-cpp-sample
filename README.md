@@ -94,7 +94,7 @@ add_executable(azure_sample main.cpp)
 #include <iostream>
 
 int main() {
-    std::cout << "Hello World!";
+    std::cout << "Hello World!"<<std::endl;
     return 0;
 }
 ```
@@ -115,7 +115,7 @@ cmake --build ./build
   ```
   - If your on MacOS or Linux, enter: 
   ```bash
-  ./build/Debug/azure_sample
+  ./build/azure_sample
   ```
 - You should get the following out put: 
 ```bash
@@ -300,7 +300,7 @@ cmake --build ./build
   ```
   - If your on MacOS or Linux, enter: 
   ```bash
-  ./build/Debug/azure_sample
+  ./build/azure_sample 
   ```
 - The program should output the following: 
 ```bash
@@ -395,7 +395,7 @@ cmake --build --preset default
   ```
   - If your on MacOS or Linux, enter: 
   ```bash
-  ./build/Debug/azure_sample
+  ./build/azure_sample 
   ```
 - The last thing we need to do to get our project ready for collaboration with git is add a `.gitignore` file that specifies that the `CMakeUserPresets.json` file should not be included in source control. 
 - To creat the `.gitignore` file use the following commands: 
